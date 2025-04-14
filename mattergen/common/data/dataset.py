@@ -42,6 +42,15 @@ class DatasetTransform(Protocol):
 def space_group_number_for_symbol(symbol: str) -> int:
     return SpaceGroup(symbol).int_number
 
+@lru_cache
+def number_for_solid_electrolyte(symbol: str) -> int:
+    if symbol.startswith(("y","Y")):
+        return 1
+    elif symbol.startswith(("n","No")):
+        return 0
+    else:
+        raise ValueError(f"Unknown solid electrolyte: {symbol}")
+
 
 @dataclass(frozen=True)
 class BaseDataset(Dataset):
@@ -62,6 +71,8 @@ class BaseDataset(Dataset):
             val = self.properties[prop][index]
             if prop == "space_group":
                 val = space_group_number_for_symbol(val)
+            elif prop == "solid_electrolyte":
+                val = number_for_solid_electrolyte(val)
             props_dict[prop] = (
                 torch.from_numpy(val) if isinstance(val, np.ndarray) else torch.tensor(val)
             )
@@ -439,7 +450,9 @@ class CrystalDatasetBuilder:
             properties[prop_name] = PropertyValues.from_json(
                 f"{self.cache_path}/{prop_name}.json"
             ).values
+            print(f"{len(properties[prop_name])} : {len(self.structure_id)}")
             assert len(properties[prop_name]) == len(self.structure_id)
+            
         return properties
 
     def build(

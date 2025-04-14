@@ -350,6 +350,23 @@ class SpaceGroupEmbeddingVector(BaseUnconditionalEmbeddingModule):
         return self.embedding(x.long() - 1)
 
 
+class SolidElectrolyteEmbeddingVector(BaseUnconditionalEmbeddingModule):
+    # If True, we don't need conditional values to evaluate an unconditional score
+    only_depends_on_shape_of_input: bool = True
+
+    def __init__(self, hidden_dim: int):
+        super().__init__()
+        # a vector of learnable parameters of shape (hidden_dim,)
+        self.embedding = torch.nn.Embedding(2, hidden_dim)
+        self.hidden_dim = hidden_dim
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Return embedding of being a valid solid electrolyte, i.e., with a room temperature ionic conductivity
+        larger than 0.1 mS/cm and energy_above_hull less than 0.1 eV/atom.
+        """
+        return self.embedding(x.long() - 1)
+
 class ZerosEmbedding(BaseUnconditionalEmbeddingModule):
     """
     Return a [n_crystals_in_batch, self.hidden_dim] tensor of zeros. This is helpfuln as the unconditional embedding
@@ -513,7 +530,8 @@ class PropertyEmbedding(torch.nn.Module):
             unconditional_embedding: torch.Tensor = self.unconditional_embedding_module(x=data).to(
                 batch.pos.device
             )
-
+            # decide which embedding to use based on 'use_unconditional_embedding' with a shape of 
+            # (batch_size, 1) and the conditional embedding with a shape of (batch_size, hidden_dim)
             return torch.where(
                 use_unconditional_embedding, unconditional_embedding, conditional_embedding
             )
