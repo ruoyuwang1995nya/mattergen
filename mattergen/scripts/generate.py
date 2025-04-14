@@ -19,6 +19,7 @@ def main(
     model_path: str | None = None,
     batch_size: int = 64,
     num_batches: int = 1,
+    num_atoms_distribution: str = "ALEX_MP_20",
     config_overrides: list[str] | None = None,
     checkpoint_epoch: Literal["best", "last"] | int = "last",
     properties_to_condition_on: TargetProperty | None = None,
@@ -96,6 +97,7 @@ def main(
         ),
         target_compositions_dict=target_compositions,
         progress_callback=progress_callback,
+        num_atoms_distribution=num_atoms_distribution
     )
     return generator.generate(output_dir=Path(output_path))
 

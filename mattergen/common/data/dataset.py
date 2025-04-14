@@ -47,7 +47,7 @@ def number_for_solid_electrolyte(symbol: str) -> int:
     if symbol.startswith(("y","Y")):
         return 1
     elif symbol.startswith(("n","No")):
-        return 0
+        return 2
     else:
         raise ValueError(f"Unknown solid electrolyte: {symbol}")
 
